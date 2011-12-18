@@ -2,7 +2,7 @@
     "use strict";
     var b = Fkd.BinarySimulator, u = Fkd.Utility;
     
-    var codedCharacterSet = b.CodedCharacterSet["JIS X 0212:1990"] = new b.CodedCharacterSet();
+    var codedCharacterSet = b.CodedCharacterSet["JIS X 0208:1997"] = new b.CodedCharacterSet();
     codedCharacterSet.CodePoint = u.inherits(function(){
         u.base(codedCharacterSet.CodePoint).call(this, codedCharacterSet);
         if(arguments.length == 2 && u.isUInt(arguments[0]) && u.isUInt(arguments[1])){

@@ -36,6 +36,7 @@
      * function applyConstructor(constructor:Function, argumentsOfConstructor:Array):Object;
      */
     u.applyConstructor = function(constructor, argumentsOfConstructor){
+        // 注: ビルトインクラスがconstructorに来ると動かない（[[Class]]のため）
         var emptyConstructor = function(){};
         emptyConstructor.prototype = constructor.prototype;
         var newObject = new emptyConstructor();
@@ -70,22 +71,37 @@
     /*
     public final class ErrorMessage{
         public static const overload:String;
+        public static const accessProtected:String;
+        public static const notImplemented:String;
     }
     */
     b.ErrorMessage = {
-        overload: "cannot found the method which matches given arguments"
+        accessProtected: "accesibility error: this is protected constructor",
+        notImplemented: "not implemented",
+        outOfRange: (function(){
+            function a(message){
+                return a.toString(message);
+            }
+            a.toString = function(message){
+                return "out of range" + (message === void 0 ? "" : ": " + message);
+            };
+            return a;
+        })(),
+        overload: "cannot found the method which matches given parameters"
     };
     /*
     public class Buffer{
         public function Buffer();
-        public function Buffer(length:uint);
-        public function Buffer(buffer:Array);
+        public function Buffer(size:uint);
+        public function Buffer(array:Array);
         public function Buffer(buffer:Buffer);
+        
         public function get(index:uint):uint;
         public function getLength():uint;
         public function push(...args):uint;
         public function set(index:uint, value:uint):void;
-        public function slice(start:int = 0):Buffer;
+        public function slice():Buffer;
+        public function slice(start:int):Buffer;
         public function slice(start:int, end:int):Buffer;
         public override function toString():String;
     }
@@ -110,6 +126,7 @@
     };
     b.Buffer.prototype.get = function(index){
         if(arguments.length == 1 && u.isUInt(index)){
+            if(!(0 <= index && index < this.getLength())) throw new Error(b.ErrorMessage.outOfRange("index"));
             return this._buffer[index];
         }else{
             throw new Error(b.ErrorMessage.overload);
@@ -123,10 +140,22 @@
         }
     };
     b.Buffer.prototype.push = function(){
-        return Array.prototype.push.apply(this._buffer, arguments);
+        var originalLength = this.getLength();
+        try{
+            this._buffer.length += arguments.length;
+            for(var i = 0, len = arguments.length; i < len; i++){
+                this.set(originalLength + i, arguments[i]);
+            }
+        }catch(e){
+            this._buffer.length = originalLength;
+            throw e;
+        }
+        return this._buffer.length;
     };
     b.Buffer.prototype.set = function(index, value){
         if(arguments.length == 2 && u.isUInt(index) && u.isUInt(value)){
+            if(!(0 <= index && index < this.getLength())) throw new Error(b.ErrorMessage.outOfRange("index"));
+            if(!(0x00 <= value && value <= 0xff)) throw new Error(b.ErrorMessage.outOfRange("value"));
             this._buffer[index] = value;
         }else{
             throw new Error(b.ErrorMessage.overload);
@@ -153,20 +182,34 @@
     
     /*
     public class CodePoint{
-        public var codedCharacterSet:CodedCharacterSet;
-
-        public function CodePoint(codedCharacterSet:CodedCharacterSet);
+        protected function CodePoint(codedCharacterSet:CodedCharacterSet);
+        
+        public function getCodedCharacterSet():CodedCharacterSet;
+        public override function toString():String; // 実装必須
     }
     */
     b.CodePoint = function(codedCharacterSet){
-        if(this.constructor == b.CodedCharacterSet) throw new Error("accesibility error: this is protected constructor");
-        this.codedCharacterSet = codedCharacterSet;
+        if(this.constructor == b.CodePoint) throw new Error(b.ErrorMessage.accessProtected);
+        if(arguments.length == 1 && codedCharacterSet instanceof b.CodedCharacterSet){
+            this._codedCharacterSet = codedCharacterSet;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.CodePoint.prototype.getCodedCharacterSet = function(){
+        return this._codedCharacterSet;
+    };
+    b.CodePoint.prototype.toString = function(){
+        throw new Error(b.ErrorMessage.notImplemented);
     };
     
     /*
-    public function CodedCharacterSet{
+    public class CodedCharacterSet{
+        public var CodePoint:Function; // CodePointの派生クラス
+
         public function CodedCharacterSet();
-        public function getCodePoint(params arguments:Array):CodePoint;
+        
+        public function getCodePoint(...args):CodePoint;
     }
     */
     b.CodedCharacterSet = function(){
@@ -180,44 +223,7 @@
         }
         return this._codePoints[serializedNewCodePoint];
     };
-    
-    b.CodedCharacterSet["Unicode"] = new b.CodedCharacterSet();
-    b.CodedCharacterSet["Unicode"].CodePoint = u.inherits(function(){
-        u.base(this.constructor).call(this, b.CodedCharacterSet["Unicode"]);
-        if(arguments.length == 1 && new Object(arguments[0]) instanceof Number){
-            var integerValue = arguments[0];
-            this._integerValue = integerValue;
-        }else if(arguments.length == 4 && new Object(arguments[0]) instanceof Number && new Object(arguments[1]) instanceof Number && new Object(arguments[2]) instanceof Number && new Object(arguments[3]) instanceof Number){
-            var group = arguments[0], plane = arguments[1], row = arguments[2], cell = arguments[3];
-            this._integerValue = group << 6 | plane << 4 | row << 2 | cell << 0;
-        }else{
-            throw new Error("cannot found the method which matches given parameters");
-        }
-    }, b.CodePoint);
-    b.CodedCharacterSet["Unicode"].CodePoint.prototype.getCell = function(){
-        return this._integerValue >>> 0 & 0xff;
-    };
-    b.CodedCharacterSet["Unicode"].CodePoint.prototype.getGroup = function(){
-        return this._integerValue >>> 6 & 0xff;
-    };
-    b.CodedCharacterSet["Unicode"].CodePoint.prototype.getIntegerValue = function(){
-        return this._integerValue;
-    };
-    b.CodedCharacterSet["Unicode"].CodePoint.prototype.getPlane = function(){
-        return this._integerValue >>> 4 & 0xff;
-    };
-    b.CodedCharacterSet["Unicode"].CodePoint.prototype.getRow = function(){
-        return this._integerValue >>> 2 & 0xff;
-    };
-    b.CodedCharacterSet["Unicode"].CodePoint.prototype.toString = function(){
-        var integerValue = this.getIntegerValue().toString(16).toUpperCase();
-        if(integerValue.length > 4){
-            return "U+" + integerValue;
-        }else{
-            return "U+" + ("0000" + integerValue).slice(-4);
-        }
-    };
-            
+
     /*
     public class Encoding{
         public var encode:Function;
@@ -226,26 +232,90 @@
         public function Encoding(encode:Function, decode:Function);
         
         public static function getEncoding(name:String):Encoding;
+        
+        public class Converter{
+            public function Converter(from:Encoding, to:Encoding);
+            
+            public function convert(codePoints:Array):Array; // CodePoint[]->CodePoint[]
+        }
     }
     */
     b.Encoding = function(encode, decode){
-        this.encode = encode;
-        this.decode = decode;
+        if(arguments.length == 2 && typeof(encode) == "function" && typeof(decode) == "function"){
+            this.encode = encode;
+            this.decode = decode;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
     };
-
     b.Encoding.getEncoding = function(){
-        
+        if(arguments.length == 0 && new Object(arguments[0]) instanceof String){
+            throw new Error(b.ErrorMessage.notImplemented);
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.Encoding.Converter = function(from, to){
+        if(arguments.length == 2 && from instanceof b.Encoding && to instanceof b.Encoding){
+            this._from = from;
+            this._to = to;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.Encoding.Converter.prototype.convert = function(codePoints){
+        if(this._from == this._to){
+            return codePoints.slice();
+        }
+        throw new Error("unsupported conversion");
     };
     
     /*
-    public class String{
-        public var encoding:Encoding;
-    
-        public function String();
-        public function getCodePoints():Array;
+    public class ExtendedString{
+        public function ExtendedString(value:String);
+        public function ExtendedString(value:String, encoding:Encoding);
+        
+        public function encode(to:Encoding):ExtendedString;
+        public function getEncoding():Encoding;
+        public override function toString():String;
     }
     */
-    b.String = function(){
+    b.ExtendedString = function(value, encoding){
+        if((arguments.length == 1 && new Object(value) instanceof String) || (arguments.length == 2 && new Object(value) instanceof String && encoding instanceof b.Encoding)){
+            if(encoding === void 0) encoding = b.Encoding["UTF-8"];
+            var bufferArray = [];
+            for(var i = 0, len = value.length; i < len; i++){
+                bufferArray.push(value.charCodeAt(i) >>> 8, value.charCodeAt(i) & 0xff);
+            }
+            this._buffer = encoding.encode(b.Encoding["UTF-16"].decode(new b.Buffer(bufferArray)));
+            this._encoding = encoding;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.ExtendedString.prototype.encode = function(to){
+        if(arguments.length == 1 && to instanceof b.Encoding){
+            var extendedString = new b.ExtendedString("", to);
+            extendedString._buffer = to.encode(new b.Encoding.Converter(this.getEncoding(), to).convert(this.getEncoding().decode(this._buffer)));
+            return extendedString;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.ExtendedString.prototype.getEncoding = function(){
+        if(arguments.length == 0){
+            return this._encoding;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.ExtendedString.prototype.toString = function(){
+        var buffer = b.Encoding["UTF-16"].encode(new b.Encoding.Converter(this.getEncoding(), b.Encoding["UTF-16"]).convert(this.getEncoding().decode(this._buffer)));
+        var result = [];
+        for(var i = 0, len = buffer.getLength(); i < len; i+=2){
+            result.push(String.fromCharCode(buffer.get(i) << 8 | buffer.get(i + 1)));
+        }
+        return result.join("");
     };
     
     new Function("return this")().Fkd = new Function("return this")().Fkd || {};

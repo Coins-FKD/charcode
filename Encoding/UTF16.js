@@ -15,7 +15,7 @@
         return buffer;
     }, function(buffer){
         var codePoints = [];
-        for(var i = 0, len = buffer.length(); i < len;){
+        for(var i = 0, len = buffer.getLength(); i < len;){
             if(i + 1 >= len){
                 throw new Error("invalid byte array");
             }

@@ -20,7 +20,7 @@
         return buffer;
     }, function(buffer){
         var codePoints = [];
-        for(var i = 0, len = buffer.length(); i < len;){
+        for(var i = 0, len = buffer.getLength(); i < len;){
             var numberOfBufferElements;
             if(0x00 <= buffer.get(i) && buffer.get(i) <= 0x7f){
                 numberOfBufferElements = 1;
@@ -35,11 +35,11 @@
             }
             var bufferForNextCodePoint = buffer.slice(i, i + numberOfBufferElements);
             // 区点位置の途中でバイト列が終わっていたら
-            if(bufferForNextCodePoint.length() != numberOfBufferElements){
+            if(bufferForNextCodePoint.getLength() != numberOfBufferElements){
                 throw new Error("invalid byte array");
             }
             // 2つ目以降の区点位置が80-BF内にあるか
-            for(var j = 1, len2 = bufferForNextCodePoint.length(); j < len2; j++){
+            for(var j = 1, len2 = bufferForNextCodePoint.getLength(); j < len2; j++){
                 if(!(0x80 <= bufferForNextCodePoint.get(j) && bufferForNextCodePoint.get(j) <= 0xbf)){
                     throw new Error("invalid byte array");
                 }

@@ -12,19 +12,19 @@
             var column = arguments[0], row = arguments[1];
             this._byteValue = column << 4 | row;
         }else{
-            throw new Error("cannot found the method which matches given parameters");
+            throw new Error(b.ErrorMessage.overload);
         }
     }, b.CodePoint);
-    codedCharacterSet.getByteValue = function(){
+    codedCharacterSet.CodePoint.prototype.getByteValue = function(){
         return this._byteValue;
     };
-    codedCharacterSet.getColumn = function(){
+    codedCharacterSet.CodePoint.prototype.getColumn = function(){
         return this._byteValue >> 4;
     };
-    codedCharacterSet.getRow = function(){
-        return this._byteValue & 0xff;
+    codedCharacterSet.CodePoint.prototype.getRow = function(){
+        return this._byteValue & 0xf;
     };
-    codedCharacterSet.toString = function(){
+    codedCharacterSet.CodePoint.prototype.toString = function(){
         return this.getColumn() + "/" + this.getRow();
     };
 })();

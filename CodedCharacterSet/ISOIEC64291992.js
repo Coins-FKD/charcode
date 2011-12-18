@@ -5,26 +5,26 @@
     var codedCharacterSet = b.CodedCharacterSet["ISO/IEC 6429:1992"] = new b.CodedCharacterSet();
     codedCharacterSet.CodePoint = u.inherits(function(){
         u.base(codedCharacterSet.CodePoint).call(this, codedCharacterSet);
-        if(arguments.length == 1 && new Object(arguments[0]) instanceof Number){
+        if(arguments.length == 1 && u.isUInt(arguments[0])){
             var byteValue = arguments[0];
             this._byteValue = byteValue;
-        }else if(arguments.length == 2 && new Object(arguments[0]) instanceof Number && new Object(arguments[1]) instanceof Number){
-            var column = arguments[0], row = argumnts[1];
+        }else if(arguments.length == 2 && u.isUInt(arguments[0]) && u.isUInt(arguments[1])){
+            var column = arguments[0], row = arguments[1];
             this._byteValue = column << 4 | row;
         }else{
-            throw new Error("cannot found the method which matches given parameters");
+            throw new Error(b.ErrorMessage.overload);
         }
     }, b.CodePoint);
-    codedCharacterSet.getByteValue = function(){
+    codedCharacterSet.CodePoint.prototype.getByteValue = function(){
         return this._byteValue;
     };
-    codedCharacterSet.getColumn = function(){
+    codedCharacterSet.CodePoint.prototype.getColumn = function(){
         return this._byteValue >> 4;
     };
-    codedCharacterSet.getRow = function(){
-        return this._byteValue & 0xff;
+    codedCharacterSet.CodePoint.prototype.getRow = function(){
+        return this._byteValue & 0xf;
     };
-    codedCharacterSet.toString = function(){
+    codedCharacterSet.CodePoint.prototype.toString = function(){
         return this.getColumn() + "/" + this.getRow();
     };
 })();
