@@ -138,9 +138,18 @@
         if(eq(b.Encoding["ISO-2022-JP"].decode(new b.Buffer([0x1b, 0x24, 0x42, 0x3b, 0x6e, 0x38, 0x33, 0x1b, 0x28, 0x42])), [b.CodedCharacterSet["JIS X 0208:1983"].getCodePoint(27, 78), b.CodedCharacterSet["JIS X 0208:1983"].getCodePoint(24, 19)])){}else{throw new Error();}
     })();
     (function(){
+        if(new b.ExtendedString("テスト").getEncoding() == b.Encoding["UTF-8"]){}else{throw new Error();}
+        if(new b.ExtendedString("テスト").getBuffer().toString() == "E3 83 86 E3 82 B9 E3 83 88"){}else{throw new Error();}
         if(new b.ExtendedString("テスト").toString() == "テスト"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト", b.Encoding["UTF-16"]).getEncoding() == b.Encoding["UTF-16"]){}else{throw new Error();}
+        if(new b.ExtendedString("テスト", b.Encoding["UTF-16"]).getBuffer().toString() == "30 C6 30 B9 30 C8"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト", b.Encoding["UTF-16"]).toString() == "テスト"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト").encode(b.Encoding["UTF-16"]).getEncoding() == b.Encoding["UTF-16"]){}else{throw new Error();}
+        if(new b.ExtendedString("テスト").encode(b.Encoding["UTF-16"]).getBuffer().toString() == "30 C6 30 B9 30 C8"){}else{throw new Error();}
         if(new b.ExtendedString("テスト").encode(b.Encoding["UTF-16"]).toString() == "テスト"){}else{throw new Error();}
-        if(new b.ExtendedString("\ud800\udc00").toString() == "\ud800\udc00"){}else{throw new Error();}
-        if(new b.ExtendedString("\ud800\udc00").encode(b.Encoding["UTF-16"]).toString() == "\ud800\udc00"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト", b.Encoding["ISO-2022-JP"]).getBuffer().toString() == "1B 24 42 25 46 25 39 25 48 1B 28 42"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト", b.Encoding["ISO-2022-JP"]).toString() == "テスト"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト").encode(b.Encoding["ISO-2022-JP"]).getBuffer().toString() == "1B 24 42 25 46 25 39 25 48 1B 28 42"){}else{throw new Error();}
+        if(new b.ExtendedString("テスト").encode(b.Encoding["ISO-2022-JP"]).toString() == "テスト"){}else{throw new Error();}
     })();
 })();

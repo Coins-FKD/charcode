@@ -70,9 +70,10 @@
     
     /*
     public final class ErrorMessage{
-        public static const overload:String;
         public static const accessProtected:String;
         public static const notImplemented:String;
+        public static outOfRange:Function;
+        public static const overload:String;
     }
     */
     b.ErrorMessage = {
@@ -276,6 +277,7 @@
         public function ExtendedString(value:String, encoding:Encoding);
         
         public function encode(to:Encoding):ExtendedString;
+        public function getBuffer():Buffer;
         public function getEncoding():Encoding;
         public override function toString():String;
     }
@@ -287,7 +289,7 @@
             for(var i = 0, len = value.length; i < len; i++){
                 bufferArray.push(value.charCodeAt(i) >>> 8, value.charCodeAt(i) & 0xff);
             }
-            this._buffer = encoding.encode(b.Encoding["UTF-16"].decode(new b.Buffer(bufferArray)));
+            this._buffer = encoding.encode(new b.Encoding.Converter(b.Encoding["UTF-16"], encoding).convert(b.Encoding["UTF-16"].decode(new b.Buffer(bufferArray))));
             this._encoding = encoding;
         }else{
             throw new Error(b.ErrorMessage.overload);
@@ -298,6 +300,13 @@
             var extendedString = new b.ExtendedString("", to);
             extendedString._buffer = to.encode(new b.Encoding.Converter(this.getEncoding(), to).convert(this.getEncoding().decode(this._buffer)));
             return extendedString;
+        }else{
+            throw new Error(b.ErrorMessage.overload);
+        }
+    };
+    b.ExtendedString.prototype.getBuffer = function(){
+        if(arguments.length == 0){
+            return new b.Buffer(this._buffer);
         }else{
             throw new Error(b.ErrorMessage.overload);
         }

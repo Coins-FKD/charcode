@@ -1,0 +1,4 @@
+ISO-2022-JP
+ テ\tスト→一度ISO/IEC 646 IRV(=ASCII)に戻って\tする必要 http://www.jisc.go.jp/app/pager?id=79920の5
+ISO-2022-JPtoUTF-8
+ 84区5点と84区6点(JIS X 0208:1990にしかない)の扱い
