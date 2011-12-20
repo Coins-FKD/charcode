@@ -2,6 +2,7 @@
 <html lang="ja"><head>
 <meta charset="UTF-8" />
 <title>サンプル</title>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript" src="BinarySimulator.js"></script>
 <script type="text/javascript" src="CodedCharacterSet/ASCII.js"></script>
 <script type="text/javascript" src="CodedCharacterSet/ISOIEC64291992.js"></script>
@@ -22,6 +23,15 @@
 <script type="text/javascript" src="Encoding/Converter/UTFtoISO2022JP.js"></script>
 <script type="text/javascript" src="Encoding/Converter/ISO2022JPtoUTF.js"></script>
 <script type="text/javascript" src="TestCode.js"></script>
+<script type="text/javascript" src="Demo.js"></script>
 </head><body>
 <h1>サンプル</h1>
+<p><select id="from_encoding"><option selected>UTF-8</option><option>UTF-16</option><option>ISO-2022-JP</option></select>から<select id="to_encoding"><option>UTF-8</option><option>UTF-16</option><option selected>ISO-2022-JP</option></select>への変換をエミュレート</p>
+<dl>
+<dt>（[参考]変換元のバイト列が表している文字）</dt><dd><input type="text" value="テスト" id="from_string" /></dd>
+<dt>変換元のバイト列</dt><dd><input type="text" value="E3 83 86 E3 82 B9 E3 83 88" size="100" id="from_buffer" /></dd>
+<dt>変換元の区点位置列</dt><dd><ul id="from_codepoints"></ul></dd>
+<dt>変換先の区点位置列</dt><dd><ul id="to_codepoints"></ul></dd>
+<dt>変換先のバイト列</dt><dd><pre id="to_buffer"></pre></dd>
+</dl>
 </body></html>
