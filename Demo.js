@@ -9,6 +9,11 @@ $(function(){
         Wr.push("Line:"+arguments[2]);
         alert(Wr.join("\n"));
     };
+    function initialize(){
+        $("#from_codepoints").empty();
+        $("#to_codepoints").empty();
+        $("#to_buffer").html("");
+    }
     function reload(fromEncoding, toEncoding, fromBuffer){
         var fromCodePoints = fromEncoding.decode(fromBuffer);
         $("#from_codepoints").empty();
@@ -71,20 +76,25 @@ $(function(){
         $("#to_buffer").html(toEncoding.encode(toCodePoints).toString())
     }
     
-    $("#from_string").blur(function(){
+    function from_string(){
+        $("#from_buffer").val("");
+        initialize();
         var fromEncoding = b.Encoding[$("#from_encoding").val()];
         var toEncoding = b.Encoding[$("#to_encoding").val()];
         var fromString = new b.ExtendedString($("#from_string").val(), fromEncoding);
         var fromBuffer = fromString.getBuffer()
         $("#from_buffer").val(fromBuffer);
         reload(fromEncoding, toEncoding, fromBuffer);
-    });
+    }
+    $("#from_string").blur(from_string);
     $("#from_string").keydown(function(e){
         if(e.keyCode == 13 || e.charCode == 13 || e.which == 13){
-            this.blur();
+            from_string();
         }
     });
-    $("#from_buffer").blur(function(){
+    function from_buffer(){
+        $("#from_string").val("");
+        initialize();
         if(!$("#from_buffer").val().match(/^(?:[0-9A-Fa-f]{2}(?: [0-9A-Fa-f]{2})*)?$/)){
             throw new Error("unknown format");
         }
@@ -101,10 +111,11 @@ $(function(){
         $("#from_string").val(fromString.toString());
         
         reload(fromEncoding, toEncoding, fromBuffer);
-    });
+    }
+    $("#from_buffer").blur(from_buffer);
     $("#from_buffer").keydown(function(e){
         if(e.keyCode == 13 || e.charCode == 13 || e.which == 13){
-            this.blur();
+            from_buffer();
         }
     });
     $("#from_encoding").change(function(){
